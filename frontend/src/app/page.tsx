@@ -632,7 +632,7 @@ function AssetRecommendations({ result, form }: { result: SimResult; form: FormD
       level: 'warning',
       title: '자산 생존 확률 보통',
       detail: `100세 생존 확률이 ${Math.round(survivalProb * 100)}%입니다. 시장 부진 시나리오에서 자산이 먼저 소진될 수 있습니다.`,
-      action: '현금성 자산 6~12개월 생활비(${won(form.monthlyExpense * 6)}~${won(form.monthlyExpense * 12)}원) 확보로 시장 하락 시 인출 최소화.',
+      action: `현금성 자산 6~12개월 생활비(${won(form.monthlyExpense * 6)}~${won(form.monthlyExpense * 12)}원) 확보로 시장 하락 시 인출 최소화.`,
     })
   }
 
