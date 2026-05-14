@@ -247,14 +247,12 @@ class TaxOptimizationEngine:
         limit = rates["separate_tax_limit"]
 
         age = inp.pension_income_age
-        if age < 60:
-            rate = rates["rate_age_55_59"]
-        elif age < 70:
-            rate = rates["rate_age_60_69"]
+        if age < 70:
+            rate = rates["rate_age_55_69"]   # 55~69세: 5.5%
         elif age < 80:
-            rate = rates["rate_age_70_79"]
+            rate = rates["rate_age_70_79"]   # 70~79세: 4.4%
         else:
-            rate = rates["rate_age_80_plus"]
+            rate = rates["rate_age_80_plus"] # 80세+: 3.3%
 
         private_pension = inp.pension_income_private
         if private_pension <= limit:

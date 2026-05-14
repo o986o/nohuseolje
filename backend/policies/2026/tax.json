@@ -77,14 +77,13 @@
     },
     "over_50_additional": 2000000,
     "pension_withdrawal_tax": {
-      "rate_age_55_59": 0.055,
-      "rate_age_60_69": 0.044,
-      "rate_age_70_79": 0.033,
+      "rate_age_55_69": 0.055,
+      "rate_age_70_79": 0.044,
       "rate_age_80_plus": 0.033,
       "separate_tax_limit": 15000000,
       "excess_rate": 0.165,
       "other_income_rate": 0.165,
-      "note": "연금소득세: 55~59세 5.5%, 60~69세 4.4%, 70~79세 3.3%, 80세이상 3.3%. 사적연금 분리과세 1,500만원 한도"
+      "note": "연금소득세: 70세 미만 5.5%, 70~79세 4.4%, 80세이상 3.3%. 사적연금 분리과세 1,500만원 한도 (소득세법 제129조)"
     },
     "early_withdrawal_rate": 0.165,
     "note": "중도해지 기타소득세 16.5%"

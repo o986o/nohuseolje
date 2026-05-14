@@ -106,14 +106,12 @@ class PensionWithdrawalEngine:
         annual_withdrawal = monthly_withdrawal * 12
 
         # 연금소득세 계산
-        if start_age < 60:
-            rate = rates["age_55_59"]
-        elif start_age < 70:
-            rate = rates["age_60_69"]
+        if start_age < 70:
+            rate = rates["age_55_69"]   # 55~69세: 5.5%
         elif start_age < 80:
-            rate = rates["age_70_79"]
+            rate = rates["age_70_79"]   # 70~79세: 4.4%
         else:
-            rate = rates["age_80_plus"]
+            rate = rates["age_80_plus"] # 80세+: 3.3%
 
         separate_limit = withdraw_tax_policy["separate_tax_limit"]
 
