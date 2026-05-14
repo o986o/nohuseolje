@@ -330,7 +330,9 @@ function Results({ result, form }: { result: SimResult; form: FormData }) {
 
   const survivalProb = mc.survival_prob_100 ?? mc.survivalProb100 ?? 0
   const depletionProb = mc.depletion_probability ?? mc.depletionProbability ?? 0
-  const depletionAge = s.depletion_age ?? s.depletionAge
+  // Monte Carlo 중앙값 고갈 나이 사용 (cashflow 고정수익률보다 현실적)
+  const mcDepletionAge = mc.median_depletion_age ?? mc.medianDepletionAge ?? null
+  const depletionSafe = survivalProb >= 1 || (!mcDepletionAge && survivalProb > 0.8)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -345,11 +347,11 @@ function Results({ result, form }: { result: SimResult; form: FormData }) {
           badge={survivalProb > 0.7 ? '안전' : survivalProb > 0.5 ? '주의' : '위험'}
         />
         <KPICard
-          label="자산 고갈 예상"
-          value={depletionAge ? `${depletionAge}세` : '100세 이상 ✓'}
-          sub={depletionAge ? `${depletionAge}세에 자산 소진 예상` : '100세까지 자산 유지'}
-          color={!depletionAge ? '#16a34a' : '#dc2626'}
-          badge={!depletionAge ? '안전' : '위험'}
+          label="자산 고갈 예상 (MC 중앙값)"
+          value={depletionSafe ? '100세 이상 ✓' : `${Math.round(mcDepletionAge!)}세`}
+          sub={depletionSafe ? '100세까지 자산 유지 (중앙 시나리오)' : `${Math.round(mcDepletionAge!)}세에 자산 소진 예상`}
+          color={depletionSafe ? '#16a34a' : '#dc2626'}
+          badge={depletionSafe ? '안전' : '위험'}
         />
         <KPICard
           label="월 건강보험료"
@@ -423,6 +425,9 @@ function Results({ result, form }: { result: SimResult; form: FormData }) {
           </ResponsiveContainer>
         </ChartCard>
       )}
+
+      {/* 자산 배분 제안 */}
+      <AssetRecommendations result={result} form={form} />
 
       {/* 연도별 상세 테이블 (10년 단위) */}
       {yearlyData.length > 0 && (
@@ -525,6 +530,163 @@ function Num({ value, onChange, min, max, suffix, step = 1 }: {
         style={{ ...inputStyle, width: 130, textAlign: 'right' }}
       />
       {suffix && <span style={{ fontSize: 13, color: '#94a3b8', whiteSpace: 'nowrap' }}>{suffix}</span>}
+    </div>
+  )
+}
+
+// ── 자산 배분 제안 컴포넌트 ────────────────────────────────────────────────────
+interface Rec {
+  level: 'danger' | 'warning' | 'tip'
+  title: string
+  detail: string
+  action: string
+}
+
+function AssetRecommendations({ result, form }: { result: SimResult; form: FormData }) {
+  const { mcResult, summary } = result
+  const mc = mcResult ?? {}
+  const s = summary ?? {}
+
+  const totalFinancial = form.financialAssets + form.usStock + form.pensionSavings + form.irp + form.isa
+  const totalAssets = totalFinancial + form.realEstateValue - form.realEstateLoan
+  const annualPension = (form.pensionSavings + form.irp) / Math.max(100 - form.retirementAge, 10)
+  const annualWithdrawal = form.monthlyExpense * 12
+  const survivalProb = mc.survival_prob_100 ?? mc.survivalProb100 ?? 0
+
+  const recs: Rec[] = []
+
+  // 1. 해외주식 집중도
+  const usRatio = totalFinancial > 0 ? form.usStock / totalFinancial : 0
+  if (usRatio > 0.5) {
+    recs.push({
+      level: 'danger',
+      title: '해외주식 집중 위험',
+      detail: `금융자산 중 해외주식 비중이 ${Math.round(usRatio * 100)}%입니다. 환율·시장 충격 시 자산이 동시에 급락할 수 있습니다.`,
+      action: '채권(국내·글로벌) 또는 배당주로 20~30%를 분산하세요. 목표: 해외주식 40% 이하',
+    })
+  } else if (usRatio > 0.35) {
+    recs.push({
+      level: 'warning',
+      title: '해외주식 비중 점검',
+      detail: `금융자산 중 해외주식이 ${Math.round(usRatio * 100)}%입니다. 현재는 관리 가능하나 은퇴 후 환율 리스크가 커집니다.`,
+      action: '연 1회 리밸런싱으로 해외주식 비중을 30~40% 수준으로 유지하세요.',
+    })
+  }
+
+  // 2. 부동산 편중
+  const reRatio = totalAssets > 0 ? (form.realEstateValue - form.realEstateLoan) / totalAssets : 0
+  if (reRatio > 0.7) {
+    recs.push({
+      level: 'danger',
+      title: '부동산 편중 — 현금흐름 위험',
+      detail: `총 자산의 ${Math.round(reRatio * 100)}%가 부동산입니다. 유동성이 없어 지출 충격 시 대응이 어렵습니다.`,
+      action: '월세 수입 극대화 또는 소형 자산 일부 매각으로 금융자산 3000만원 이상 확보를 검토하세요.',
+    })
+  } else if (reRatio > 0.55) {
+    recs.push({
+      level: 'warning',
+      title: '부동산 비중 높음',
+      detail: `총 자산의 ${Math.round(reRatio * 100)}%가 부동산입니다. 월세 수입이 없으면 현금흐름 적자가 발생할 수 있습니다.`,
+      action: '임대 수익 창출 또는 금융자산 비중 점진적 확대를 검토하세요.',
+    })
+  }
+
+  // 3. 사적연금 분리과세 한도 (연 1,500만원)
+  const PENSION_LIMIT = 15_000_000
+  if (annualPension > PENSION_LIMIT) {
+    recs.push({
+      level: 'warning',
+      title: '사적연금 분리과세 한도 초과',
+      detail: `연 사적연금 인출 예상액 ${won(Math.round(annualPension))}원이 분리과세 한도(1,500만원)를 초과합니다. 초과분은 종합과세 대상이 됩니다.`,
+      action: '수령 기간을 늘리거나(예: 35년 수령) IRP와 연금저축 인출을 분산해 연 1,500만원 이하로 조정하세요.',
+    })
+  }
+
+  // 4. ISA 활용
+  if (form.isa < 10_000_000) {
+    recs.push({
+      level: 'tip',
+      title: 'ISA 잔액 부족 — 절세 기회 손실',
+      detail: `ISA 잔액이 ${won(form.isa)}원입니다. ISA는 연 2,000만원 납입, 비과세 200만원(서민형 400만원), 만기 후 연금저축 이전 시 추가 세액공제(최대 300만원)를 제공합니다.`,
+      action: '매년 ISA에 최대한 납입(연 2,000만원 한도)하고, 3년 만기 후 연금저축으로 이전하세요.',
+    })
+  } else if (form.isa > 50_000_000) {
+    recs.push({
+      level: 'tip',
+      title: 'ISA → 연금저축 이전 전략',
+      detail: `ISA ${won(form.isa)}원을 만기 시 연금저축으로 이전하면 이전액의 10%(최대 300만원)를 추가 세액공제 받을 수 있습니다.`,
+      action: 'ISA 만기 시 전액 연금저축으로 이전하세요. 300만원 추가 세액공제 + 비과세 혜택 동시 확보.',
+    })
+  }
+
+  // 5. 생존 확률 낮음
+  if (survivalProb < 0.5) {
+    recs.push({
+      level: 'danger',
+      title: '자산 고갈 위험 — 즉각 조치 필요',
+      detail: `100세 생존 확률이 ${Math.round(survivalProb * 100)}%입니다. 현재 지출 수준을 유지하면 절반 이상의 시나리오에서 자산이 바닥납니다.`,
+      action: '월 지출을 20~30% 축소하거나, 부동산 자산 일부를 현금화하거나, 국민연금 수령을 최대 70세까지 연기(연 7.2% 증액)하세요.',
+    })
+  } else if (survivalProb < 0.7) {
+    recs.push({
+      level: 'warning',
+      title: '자산 생존 확률 보통',
+      detail: `100세 생존 확률이 ${Math.round(survivalProb * 100)}%입니다. 시장 부진 시나리오에서 자산이 먼저 소진될 수 있습니다.`,
+      action: '현금성 자산 6~12개월 생활비(${won(form.monthlyExpense * 6)}~${won(form.monthlyExpense * 12)}원) 확보로 시장 하락 시 인출 최소화.',
+    })
+  }
+
+  // 6. 국민연금 연기 전략
+  if (form.age < 65 && form.nationalPensionMonthly > 0) {
+    recs.push({
+      level: 'tip',
+      title: '국민연금 연기 수령 검토',
+      detail: `국민연금을 65세 대신 70세에 수령하면 월 ${won(Math.round(form.nationalPensionMonthly * 1.36))}원(36% 증액)을 받습니다. 장수 시 총 수령액이 크게 늘어납니다.`,
+      action: '건강하고 다른 소득이 있다면 국민연금 5년 연기를 검토하세요. 기대수명 84세 이상이면 연기가 유리합니다.',
+    })
+  }
+
+  // 7. 현금 완충 부족
+  const cashCushion = form.financialAssets
+  if (cashCushion < form.monthlyExpense * 12) {
+    recs.push({
+      level: 'warning',
+      title: '현금성 자산 부족',
+      detail: `예금·국내 금융자산이 ${won(cashCushion)}원으로 연간 생활비(${won(form.monthlyExpense * 12)}원)에 못 미칩니다. 시장 폭락 시 손실 구간에서 자산을 팔아야 합니다.`,
+      action: '금융자산의 일부를 CMA·단기채 등 현금성 자산으로 1~2년치 생활비 규모로 유지하세요.',
+    })
+  }
+
+  if (recs.length === 0) return null
+
+  const levelColor = { danger: '#dc2626', warning: '#d97706', tip: '#4f6ef7' }
+  const levelBg = { danger: '#fef2f2', warning: '#fffbeb', tip: '#eff6ff' }
+  const levelBorder = { danger: '#fecaca', warning: '#fde68a', tip: '#bfdbfe' }
+  const levelLabel = { danger: '🔴 위험', warning: '🟡 주의', tip: '💡 팁' }
+
+  return (
+    <div style={{ background: '#fff', borderRadius: 14, padding: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
+      <p style={{ fontSize: 15, fontWeight: 700, color: '#1e293b', marginBottom: 16 }}>자산 배분 제안</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {recs.map((r, i) => (
+          <div key={i} style={{
+            background: levelBg[r.level],
+            border: `1px solid ${levelBorder[r.level]}`,
+            borderRadius: 10,
+            padding: '14px 16px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: levelColor[r.level], background: `${levelColor[r.level]}18`, padding: '2px 8px', borderRadius: 20 }}>{levelLabel[r.level]}</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#1e293b' }}>{r.title}</span>
+            </div>
+            <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.5, marginBottom: 8 }}>{r.detail}</p>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: levelColor[r.level], whiteSpace: 'nowrap', marginTop: 1 }}>→ 행동</span>
+              <p style={{ fontSize: 13, color: '#1e293b', fontWeight: 600, lineHeight: 1.5 }}>{r.action}</p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
