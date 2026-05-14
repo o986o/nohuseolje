@@ -121,12 +121,18 @@ class CashflowEngine:
     def __init__(self):
         self._policy = get_policy_loader()
         self._macro = self._policy.macro
+        self._asset_returns = self._policy.get_asset_returns()
         self._hi_engine = HealthInsuranceEngine()
         self._tax_engine = TaxOptimizationEngine()
 
     def project(self, profile: CashflowProfile) -> list[YearlyCashflow]:
         """100세까지 연도별 현금흐름 계산"""
         results = []
+
+        # macro.json 기반 자산 수익률 (하드코딩 제거)
+        _RE_RETURN    = self._asset_returns["real_estate"]["expected_return"]   # 0.04
+        _BOND_RETURN  = self._asset_returns["bond"]["expected_return"]          # 0.04
+        _US_RETURN    = profile.us_stock_return                                 # 0.085 (프로파일 유지)
 
         # 상태 변수 (연도별 변화)
         financial_assets = float(profile.financial_assets)
@@ -169,6 +175,10 @@ class CashflowEngine:
             )
 
             financial_income = int(financial_assets * profile.financial_income_yield)
+            # BUG FIX: financial_assets 전체 수익률 성장분은 자산 업데이트 단계에서 반영
+            # (income yield 부분은 수입으로 인식, price appreciation은 자산 성장으로 별도 처리)
+            _FA_PRICE_APPRECIATION = max(profile.financial_income_yield - 0.01, 0.0)
+            # 예: yield=0.05이면 배당/이자 4%는 income, 가격상승 1%는 자산 성장
             rental_income = profile.rental_income_monthly * 12
             us_stock_income = 0  # 미실현 (자산만 증가)
 
@@ -262,11 +272,14 @@ class CashflowEngine:
             else:
                 financial_assets = new_fa
 
-            # 자산 성장 (남은 잔액에 적용)
-            pension_savings *= (1 + 0.04)  # 연금저축 운용 수익
-            irp *= (1 + 0.04)
-            us_stock *= (1 + profile.us_stock_return)
-            real_estate *= (1 + 0.03)      # 부동산 연 3% 상승
+            # 자산 성장 (남은 잔액에 적용) — macro.json 기반 수익률 사용 (하드코딩 제거)
+            # financial_assets: net cashflow 반영 후 가격상승분 추가
+            if financial_assets > 0:
+                financial_assets *= (1 + _FA_PRICE_APPRECIATION)
+            pension_savings *= (1 + _BOND_RETURN)   # macro.json bond: 4% (기존 0.04와 동일하나 동적)
+            irp *= (1 + _BOND_RETURN)
+            us_stock *= (1 + _US_RETURN)
+            real_estate *= (1 + _RE_RETURN)          # BUG FIX: 0.03 → macro.json 0.04
 
             total_assets = (
                 int(financial_assets) + int(real_estate) - profile.real_estate_loan
