@@ -226,34 +226,43 @@ class CashflowEngine:
             net = total_income - total_expense
 
             # ── 자산 업데이트 ────────────────────────────────────────────
-            financial_assets = max(financial_assets + net, 0)
-            if net < 0 and financial_assets <= 0:
-                # 연금 계좌에서 인출
-                shortage = abs(financial_assets)
+            new_fa = financial_assets + net
+            if new_fa < 0:
+                # 부족분을 순서대로 인출: ISA → 연금저축 → IRP → 해외주식
+                shortage = abs(new_fa)
                 financial_assets = 0
 
-                if isa > shortage:
+                if isa >= shortage:
                     isa -= shortage
                     shortage = 0
                 else:
                     shortage -= isa
                     isa = 0
 
-                if pension_savings > shortage:
+                if pension_savings >= shortage:
                     pension_savings -= shortage
                     shortage = 0
                 else:
                     shortage -= pension_savings
                     pension_savings = 0
 
-                if irp > shortage:
+                if irp >= shortage:
                     irp -= shortage
                     shortage = 0
                 else:
                     shortage -= irp
                     irp = 0
 
-            # 자산 성장
+                if us_stock >= shortage:
+                    us_stock -= shortage
+                    shortage = 0
+                else:
+                    shortage -= us_stock
+                    us_stock = 0
+            else:
+                financial_assets = new_fa
+
+            # 자산 성장 (남은 잔액에 적용)
             pension_savings *= (1 + 0.04)  # 연금저축 운용 수익
             irp *= (1 + 0.04)
             us_stock *= (1 + profile.us_stock_return)

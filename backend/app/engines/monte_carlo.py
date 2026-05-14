@@ -264,7 +264,12 @@ class MonteCarloEngine:
         survival_prob = survived.mean()
         depletion_prob = depleted.mean()
 
-        median_depletion = float(np.nanmedian(depletion_ages)) if depleted.any() else None
+        # 생존 시뮬레이션은 target_age+1로 채워 전체 50번째 백분위수를 구함
+        # (nanmedian은 고갈된 시뮬레이션만 대상이라 부정확)
+        all_depletion = np.where(np.isnan(depletion_ages), inp.target_age + 1, depletion_ages)
+        p50_depletion = float(np.percentile(all_depletion, 50))
+        median_depletion = None if p50_depletion > inp.target_age else p50_depletion
+
         expected_depletion = float(np.nanmean(depletion_ages)) if depleted.any() else None
 
         # 연령별 백분위수

@@ -335,7 +335,8 @@ function Results({ result, form }: { result: SimResult; form: FormData }) {
   const depletionProb = mc.depletion_probability ?? mc.depletionProbability ?? 0
   // Monte Carlo 중앙값 고갈 나이 사용 (cashflow 고정수익률보다 현실적)
   const mcDepletionAge = mc.median_depletion_age ?? mc.medianDepletionAge ?? null
-  const depletionSafe = survivalProb >= 1 || (!mcDepletionAge && survivalProb > 0.8)
+  // 백엔드가 전체 시뮬레이션 50번째 백분위수 기준으로 계산 — null이면 중앙 시나리오가 100세 이상 생존
+  const depletionSafe = mcDepletionAge === null
 
   // ── 현황 요약 계산 ──────────────────────────────────────────────────────────
   const totalFinancial = form.financialAssets + form.usStock + form.pensionSavings + form.irp + form.isa
