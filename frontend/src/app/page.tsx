@@ -306,7 +306,10 @@ function Results({ result, form }: { result: SimResult; form: FormData }) {
   const mc = mcResult ?? {}
   const s = summary ?? {}
 
-  const totalAssets = form.financialAssets + form.usStock + form.pensionSavings + form.irp + form.isa + form.realEstateValue - form.realEstateLoan
+  const currentAssets = form.financialAssets + form.usStock + form.pensionSavings + form.irp + form.isa + form.realEstateValue - form.realEstateLoan
+  // 은퇴 시점 행: retirementAge 이상인 첫 번째 연도
+  const retirementRow = yearlyData.find((d: any) => (d.age ?? 0) >= form.retirementAge)
+  const retirementAssets = retirementRow ? (retirementRow.total_assets ?? retirementRow.totalAssets ?? null) : null
 
   // 현금흐름 차트 데이터 (5년 단위)
   const cfChartData = yearlyData
@@ -361,11 +364,11 @@ function Results({ result, form }: { result: SimResult; form: FormData }) {
           badge="2026 기준"
         />
         <KPICard
-          label="총 자산"
-          value={`${won(totalAssets)}원`}
-          sub={`금융 ${won(form.financialAssets + form.usStock)}원 + 부동산 ${won(form.realEstateValue)}원`}
+          label={`은퇴 시점 예상 자산 (${form.retirementAge}세)`}
+          value={retirementAssets !== null ? `${won(retirementAssets)}원` : '계산 중...'}
+          sub={`현재 자산 ${won(currentAssets)}원 기준`}
           color="#7c3aed"
-          badge="현재"
+          badge="cashflow 기준"
         />
       </div>
 
