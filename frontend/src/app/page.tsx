@@ -337,8 +337,89 @@ function Results({ result, form }: { result: SimResult; form: FormData }) {
   const mcDepletionAge = mc.median_depletion_age ?? mc.medianDepletionAge ?? null
   const depletionSafe = survivalProb >= 1 || (!mcDepletionAge && survivalProb > 0.8)
 
+  // ── 현황 요약 계산 ──────────────────────────────────────────────────────────
+  const totalFinancial = form.financialAssets + form.usStock + form.pensionSavings + form.irp + form.isa
+  const usRatio = totalFinancial > 0 ? form.usStock / totalFinancial : 0
+  const reRatio = currentAssets > 0 ? (form.realEstateValue - form.realEstateLoan) / currentAssets : 0
+  const monthlyIncome = form.nationalPensionMonthly + form.rentalIncomeMonthly
+  const monthlyGap = form.monthlyExpense - monthlyIncome
+
+  // 추천 자산 배분 (나이·위험도 기반 주식 비중: 110 - 나이 룰 + 은퇴 여부 조정)
+  const isRetired = form.age >= form.retirementAge
+  const baseEquity = Math.max(20, Math.min(70, 110 - form.age))
+  const targetOverseas = Math.round(baseEquity * 0.5)   // 해외주식
+  const targetDomestic = Math.round(baseEquity * 0.2)   // 국내주식·리츠
+  const targetBond = Math.round(baseEquity * 0.3)        // 채권·혼합
+  const targetCash = 100 - targetOverseas - targetDomestic - targetBond  // 현금·단기
+
+  const statusColor = survivalProb > 0.7 ? '#16a34a' : survivalProb > 0.5 ? '#d97706' : '#dc2626'
+  const statusLabel = survivalProb > 0.7 ? '양호' : survivalProb > 0.5 ? '주의 필요' : '즉각 조치 필요'
+  const statusBg = survivalProb > 0.7 ? '#f0fdf4' : survivalProb > 0.5 ? '#fffbeb' : '#fef2f2'
+  const statusBorder = survivalProb > 0.7 ? '#bbf7d0' : survivalProb > 0.5 ? '#fde68a' : '#fecaca'
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+      {/* ── 현황 요약 카드 ── */}
+      <div style={{ background: statusBg, border: `1.5px solid ${statusBorder}`, borderRadius: 16, padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <span style={{ fontSize: 16, fontWeight: 800, color: statusColor }}>노후 재정 현황 요약</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', background: statusColor, padding: '2px 10px', borderRadius: 20 }}>{statusLabel}</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+          {[
+            { label: '현재 나이 / 은퇴 예정', value: `${form.age}세 / ${form.retirementAge}세`, sub: isRetired ? '이미 은퇴' : `${form.retirementAge - form.age}년 후 은퇴` },
+            { label: '현재 총 자산', value: `${won(currentAssets)}원`, sub: `금융 ${won(totalFinancial)}원 · 부동산 ${won(form.realEstateValue - form.realEstateLoan)}원` },
+            { label: '월 예상 수입 (은퇴 후)', value: `${won(monthlyIncome)}원/월`, sub: monthlyGap > 0 ? `월 ${won(monthlyGap)}원 부족` : `월 ${won(-monthlyGap)}원 흑자` },
+            { label: '100세 생존 확률', value: pct(survivalProb), sub: depletionSafe ? '100세까지 자산 유지' : `${Math.round(mcDepletionAge!)}세 고갈 예상` },
+            { label: '해외주식 비중', value: `${Math.round(usRatio * 100)}%`, sub: usRatio > 0.5 ? '⚠️ 과도한 집중' : usRatio > 0.35 ? '관리 범위' : '적정 수준' },
+            { label: '부동산 비중', value: `${Math.round(reRatio * 100)}%`, sub: reRatio > 0.7 ? '⚠️ 유동성 위험' : reRatio > 0.55 ? '주의' : '적정 수준' },
+          ].map((item, i) => (
+            <div key={i} style={{ background: 'rgba(255,255,255,0.7)', borderRadius: 10, padding: '10px 14px' }}>
+              <p style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 3 }}>{item.label}</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#1e293b' }}>{item.value}</p>
+              <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{item.sub}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── 추천 자산 배분 카드 ── */}
+      <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+          <span style={{ fontSize: 16, fontWeight: 800, color: '#1e293b' }}>추천 자산 배분</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#4f6ef7', background: '#eff6ff', padding: '2px 10px', borderRadius: 20 }}>{form.age}세 기준 · 110-나이 룰</span>
+        </div>
+        <p style={{ fontSize: 13, color: '#64748b', marginBottom: 16 }}>
+          {isRetired ? '은퇴 후 인출 단계 — 안정성 우선, 물가상승 대응 주식 비중 유지' : `은퇴까지 ${form.retirementAge - form.age}년 — 성장·안정 균형`}
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+          {[
+            { label: '해외주식', pct: targetOverseas, color: '#4f6ef7', bg: '#eff6ff', desc: 'S&P500·선진국 ETF', detail: '성장 엔진, 분산 핵심' },
+            { label: '국내주식·리츠', pct: targetDomestic, color: '#7c3aed', bg: '#f5f3ff', desc: 'KOSPI ETF·부동산리츠', detail: '배당·환율 헤지' },
+            { label: '채권·혼합', pct: targetBond, color: '#0891b2', bg: '#ecfeff', desc: '국채·회사채 ETF', detail: '변동성 완충' },
+            { label: '현금·단기', pct: targetCash, color: '#16a34a', bg: '#f0fdf4', desc: 'CMA·단기채', detail: `${Math.round(form.monthlyExpense * 12 / 10000)}만원/년 생활비 완충` },
+          ].map((item) => (
+            <div key={item.label} style={{ background: item.bg, borderRadius: 12, padding: '14px 12px', textAlign: 'center' }}>
+              <p style={{ fontSize: 26, fontWeight: 800, color: item.color }}>{item.pct}%</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginTop: 2 }}>{item.label}</p>
+              <p style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>{item.desc}</p>
+              <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{item.detail}</p>
+            </div>
+          ))}
+        </div>
+        {/* 비율 막대 */}
+        <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', height: 10, marginTop: 16, gap: 2 }}>
+          {[
+            { pct: targetOverseas, color: '#4f6ef7' },
+            { pct: targetDomestic, color: '#7c3aed' },
+            { pct: targetBond, color: '#0891b2' },
+            { pct: targetCash, color: '#16a34a' },
+          ].map((s, i) => (
+            <div key={i} style={{ flex: s.pct, background: s.color, borderRadius: 2 }} />
+          ))}
+        </div>
+      </div>
 
       {/* 핵심 지표 4개 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
