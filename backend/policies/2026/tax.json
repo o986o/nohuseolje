@@ -1,0 +1,138 @@
+{
+  "version": "2026.1.0",
+  "effective_date": "2026-01-01",
+  "jurisdiction": "KR",
+  "source": "국세청 2026년 세법 기준",
+
+  "income_tax_brackets": [
+    { "min": 0,       "max": 14000000,  "rate": 0.06, "deduction": 0 },
+    { "min": 14000000,"max": 50000000,  "rate": 0.15, "deduction": 1260000 },
+    { "min": 50000000,"max": 88000000,  "rate": 0.24, "deduction": 5760000 },
+    { "min": 88000000,"max": 150000000, "rate": 0.35, "deduction": 15440000 },
+    { "min": 150000000,"max": 300000000,"rate": 0.38, "deduction": 19940000 },
+    { "min": 300000000,"max": 500000000,"rate": 0.40, "deduction": 25940000 },
+    { "min": 500000000,"max": 1000000000,"rate": 0.42,"deduction": 35940000 },
+    { "min": 1000000000,"max": null,    "rate": 0.45, "deduction": 65940000 }
+  ],
+  "local_income_tax_rate": 0.10,
+
+  "financial_income": {
+    "comprehensive_threshold": 20000000,
+    "withholding_rate": 0.154,
+    "types": ["interest", "dividend"]
+  },
+
+  "overseas_stock_gains": {
+    "basic_deduction": 2500000,
+    "tax_rate": 0.22,
+    "local_tax_included": true,
+    "reporting_deadline": "05-31",
+    "note": "양도소득세 22% (지방세 포함), 연 250만원 기본공제"
+  },
+
+  "isa": {
+    "annual_limit": 20000000,
+    "total_limit": 100000000,
+    "types": {
+      "general": {
+        "tax_free_limit": 2000000,
+        "excess_rate": 0.099,
+        "note": "일반형 비과세 200만원, 초과분 9.9% 분리과세"
+      },
+      "low_income": {
+        "tax_free_limit": 4000000,
+        "excess_rate": 0.099,
+        "eligibility_income": 50000000,
+        "note": "서민형 비과세 400만원 (총급여 5천만원 이하)"
+      },
+      "agricultural": {
+        "tax_free_limit": 4000000,
+        "excess_rate": 0.099,
+        "note": "농어민형"
+      }
+    },
+    "maturity_years": 3,
+    "pension_transfer": {
+      "additional_deduction_rate": 0.10,
+      "max_additional_deduction": 3000000,
+      "note": "만기 후 연금저축/IRP 이전 시 이전금액의 10% 추가 세액공제, 최대 300만원"
+    }
+  },
+
+  "pension_accounts": {
+    "pension_savings": {
+      "annual_contribution_limit": 6000000,
+      "tax_credit_limit": 4000000,
+      "tax_credit_rate_below_55m": 0.165,
+      "tax_credit_rate_above_55m": 0.132,
+      "note": "연금저축, 세액공제 400만원 한도"
+    },
+    "irp": {
+      "annual_contribution_limit": 18000000,
+      "combined_limit_with_pension": 9000000,
+      "irp_only_additional": 3000000,
+      "tax_credit_rate_below_55m": 0.165,
+      "tax_credit_rate_above_55m": 0.132,
+      "note": "IRP, 연금저축 합산 900만원 한도 세액공제"
+    },
+    "over_50_additional": 2000000,
+    "pension_withdrawal_tax": {
+      "rate_age_55_59": 0.055,
+      "rate_age_60_69": 0.044,
+      "rate_age_70_79": 0.033,
+      "rate_age_80_plus": 0.033,
+      "separate_tax_limit": 15000000,
+      "excess_rate": 0.165,
+      "other_income_rate": 0.165,
+      "note": "연금소득세: 55~59세 5.5%, 60~69세 4.4%, 70~79세 3.3%, 80세이상 3.3%. 사적연금 분리과세 1,500만원 한도"
+    },
+    "early_withdrawal_rate": 0.165,
+    "note": "중도해지 기타소득세 16.5%"
+  },
+
+  "gift_tax": {
+    "spouse_deduction": 600000000,
+    "spouse_deduction_period_years": 10,
+    "adult_child_deduction": 50000000,
+    "adult_child_period_years": 10,
+    "minor_child_deduction": 20000000,
+    "brackets": [
+      { "min": 0,         "max": 100000000,   "rate": 0.10, "deduction": 0 },
+      { "min": 100000000, "max": 500000000,   "rate": 0.20, "deduction": 10000000 },
+      { "min": 500000000, "max": 1000000000,  "rate": 0.30, "deduction": 60000000 },
+      { "min": 1000000000,"max": 3000000000,  "rate": 0.40, "deduction": 160000000 },
+      { "min": 3000000000,"max": null,         "rate": 0.50, "deduction": 460000000 }
+    ],
+    "acquisition_cost_succession": true,
+    "note": "배우자 증여 6억원 공제 (10년간), 취득가액 승계로 양도세 절세"
+  },
+
+  "inheritance_tax": {
+    "basic_deduction": 200000000,
+    "spouse_deduction_min": 500000000,
+    "spouse_deduction_max": 3000000000,
+    "lump_sum_deduction": 500000000,
+    "financial_asset_deduction_rate": 0.20,
+    "financial_asset_deduction_max": 200000000,
+    "brackets": [
+      { "min": 0,         "max": 100000000,   "rate": 0.10, "deduction": 0 },
+      { "min": 100000000, "max": 500000000,   "rate": 0.20, "deduction": 10000000 },
+      { "min": 500000000, "max": 1000000000,  "rate": 0.30, "deduction": 60000000 },
+      { "min": 1000000000,"max": 3000000000,  "rate": 0.40, "deduction": 160000000 },
+      { "min": 3000000000,"max": null,         "rate": 0.50, "deduction": 460000000 }
+    ],
+    "note": "상속세: 일괄공제 5억, 배우자공제 최소 5억~최대 30억"
+  },
+
+  "pension_income_deduction": {
+    "brackets": [
+      { "min": 0,        "max": 3500000,  "rate": 1.00, "floor": 0 },
+      { "min": 3500000,  "max": 7000000,  "rate": 0.75, "floor": 3500000 },
+      { "min": 7000000,  "max": 14000000, "rate": 0.50, "floor": 6125000 },
+      { "min": 14000000, "max": 21000000, "rate": 0.25, "floor": 9625000 },
+      { "min": 21000000, "max": null,     "rate": 0.00, "floor": 11375000 }
+    ],
+    "max_deduction": 9000000,
+    "note": "연금소득공제"
+  }
+}

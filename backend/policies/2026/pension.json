@@ -1,0 +1,106 @@
+{
+  "version": "2026.1.0",
+  "effective_date": "2026-01-01",
+  "jurisdiction": "KR",
+  "source": "국민연금공단 2026년 기준, 보건복지부",
+
+  "national_pension": {
+    "contribution_rate": 0.09,
+    "employer_rate": 0.045,
+    "employee_rate": 0.045,
+    "min_income_monthly": 370000,
+    "max_income_monthly": 6170000,
+    "note": "국민연금 보험료율 9%, 기준소득월액 37만~617만원",
+
+    "eligibility_age": {
+      "1952_before": 60,
+      "1953_1956": 61,
+      "1957_1960": 62,
+      "1961_1964": 63,
+      "1965_1968": 64,
+      "1969_after": 65
+    },
+
+    "early_pension": {
+      "earliest_age": 60,
+      "reduction_per_year": 0.06,
+      "note": "조기수령 시 1년당 6% 감액"
+    },
+
+    "deferred_pension": {
+      "max_defer_years": 5,
+      "increase_per_year": 0.072,
+      "note": "연기연금 1년당 7.2% 증액"
+    },
+
+    "survivor_pension_rate": 0.60,
+    "disability_grade": {
+      "1": 1.00,
+      "2": 0.80,
+      "3": 0.60
+    },
+
+    "indexing": {
+      "method": "consumer_price_index",
+      "note": "연금액 매년 물가상승률 반영"
+    }
+  },
+
+  "private_pension": {
+    "tax_rates": {
+      "age_55_59": 0.055,
+      "age_60_69": 0.044,
+      "age_70_79": 0.033,
+      "age_80_plus": 0.033,
+      "local_tax_multiplier": 1.10
+    },
+    "separate_tax_threshold": 15000000,
+    "over_threshold_rate": 0.165,
+    "note": "사적연금 연 1,500만원 이하 분리과세. 초과 시 종합과세 또는 16.5% 선택"
+  },
+
+  "pension_type_3a": {
+    "name": "연금저축",
+    "types": ["은행", "보험", "증권"],
+    "annual_limit": 6000000,
+    "min_holding_years": 5,
+    "min_age_to_withdraw": 55,
+    "min_withdraw_years": 10,
+    "tax_credit": {
+      "income_below_55m": 0.165,
+      "income_above_55m": 0.132,
+      "limit": 4000000
+    }
+  },
+
+  "irp": {
+    "name": "개인형퇴직연금",
+    "annual_limit": 18000000,
+    "combined_limit": 9000000,
+    "safe_asset_ratio": 0.30,
+    "note": "IRP 원리금보장 30% 이상 필수",
+    "tax_credit": {
+      "income_below_55m": 0.165,
+      "income_above_55m": 0.132,
+      "limit_combined": 9000000
+    }
+  },
+
+  "public_pension_health_insurance": {
+    "reflection_rate": 0.50,
+    "note": "국민연금 등 공적연금 50%를 건강보험 소득에 반영"
+  },
+
+  "withdrawal_strategies": {
+    "order_recommendation": [
+      "일반_계좌_금융소득_조절",
+      "ISA_비과세_한도_활용",
+      "연금저축_분리과세_한도_내",
+      "IRP_분리과세_한도_내",
+      "국민연금",
+      "연금저축_초과분",
+      "IRP_초과분"
+    ],
+    "note": "건보료 및 종합과세 최소화를 위한 권장 인출 순서"
+  }
+}

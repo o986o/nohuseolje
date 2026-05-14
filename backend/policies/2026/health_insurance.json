@@ -1,0 +1,102 @@
+{
+  "version": "2026.1.0",
+  "effective_date": "2026-01-01",
+  "jurisdiction": "KR",
+  "source": "국민건강보험공단 2026년 기준",
+
+  "premium_rate": {
+    "employee_rate": 0.0709,
+    "employer_rate": 0.0709,
+    "combined_rate": 0.0709,
+    "note": "직장가입자 보험료율 7.09% (노사 각 3.545%)"
+  },
+
+  "long_term_care_rate": 0.1295,
+  "note_ltc": "장기요양보험료 = 건강보험료 × 12.95%",
+
+  "regional_subscriber": {
+    "income_score": {
+      "note": "지역가입자 소득보험료: 소득 × 8.09% / 12 (직장가입자 준용 방식, 2022년 9월 전면개편)",
+      "rate": 0.0809,
+      "min_income": 336000,
+      "note_min": "소득 최저 기준: 월 33.6만원 (연 403만원)"
+    },
+    "property_score": {
+      "table": [
+        { "min": 0,         "max": 16500000,  "score": 0 },
+        { "min": 16500000,  "max": 30000000,  "score": 22 },
+        { "min": 30000000,  "max": 60000000,  "score": 44 },
+        { "min": 60000000,  "max": 90000000,  "score": 66 },
+        { "min": 90000000,  "max": 120000000, "score": 88 },
+        { "min": 120000000, "max": 150000000, "score": 110 },
+        { "min": 150000000, "max": 200000000, "score": 132 },
+        { "min": 200000000, "max": 250000000, "score": 154 },
+        { "min": 250000000, "max": 300000000, "score": 176 },
+        { "min": 300000000, "max": 400000000, "score": 198 },
+        { "min": 400000000, "max": 500000000, "score": 220 },
+        { "min": 500000000, "max": 600000000, "score": 242 },
+        { "min": 600000000, "max": 700000000, "score": 264 },
+        { "min": 700000000, "max": 900000000, "score": 286 },
+        { "min": 900000000, "max": null,       "score": 308 }
+      ],
+      "score_unit_price": 208.4,
+      "note": "재산 점수 × 208.4원 = 재산보험료. 2026년 부동산 공시가 기준"
+    },
+    "vehicle_score": {
+      "exempt_below": 4000000,
+      "table": [
+        { "displacement": 1000, "score": 12 },
+        { "displacement": 1600, "score": 22 },
+        { "displacement": 2000, "score": 44 },
+        { "displacement": 2500, "score": 66 },
+        { "displacement": 3000, "score": 88 },
+        { "displacement": null, "score": 110 }
+      ],
+      "score_unit_price": 208.4,
+      "exempt_age_years": 9,
+      "note": "자동차 보험료. 차량 4천만원 미만 또는 9년 이상 면제"
+    },
+    "min_premium": 19780,
+    "note_min": "지역가입자 최저보험료 (2026)"
+  },
+
+  "dependent_eligibility": {
+    "income_threshold": 20000000,
+    "financial_income_threshold": 10000000,
+    "pension_income_threshold": 20000000,
+    "property_threshold": 540000000,
+    "property_income_threshold_high_property": 10000000,
+    "note": "피부양자 자격: 연소득 2천만원 이하, 금융소득 1천만원 이하, 재산 5.4억 이하. 소득 있으면서 재산 5.4억 초과 시 탈락",
+    "disqualification_triggers": [
+      "금융소득 1,000만원 초과",
+      "연소득 2,000만원 초과",
+      "사업소득 발생",
+      "재산세 과세표준 5.4억 초과",
+      "재산 5.4억 초과 + 연소득 1,000만원 초과"
+    ]
+  },
+
+  "income_components": {
+    "include": [
+      "근로소득",
+      "사업소득",
+      "이자소득",
+      "배당소득",
+      "연금소득",
+      "기타소득",
+      "양도소득"
+    ],
+    "pension_reflection": {
+      "public_pension_rate": 0.50,
+      "private_pension_rate": 1.00,
+      "note": "공적연금(국민연금 등) 50% 반영, 사적연금 100% 반영"
+    }
+  },
+
+  "alerts": {
+    "financial_income_warning": 20000000,
+    "dependent_risk_income": 18000000,
+    "premium_spike_threshold": 0.30,
+    "note": "건보료 30% 이상 급증 시 경고"
+  }
+}

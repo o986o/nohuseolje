@@ -1,0 +1,162 @@
+{
+  "version": "2026.1.0",
+  "effective_date": "2026-01-01",
+  "source": "통계청, 한국은행, 기획재정부",
+
+  "inflation": {
+    "base_rate": 0.025,
+    "medical_rate": 0.040,
+    "housing_rate": 0.030,
+    "scenarios": {
+      "low": 0.015,
+      "base": 0.025,
+      "high": 0.040,
+      "crisis": 0.065
+    },
+    "note": "2026년 기대인플레이션 2.5%, 의료비 4%, 주거비 3%"
+  },
+
+  "exchange_rate": {
+    "usd_krw_base": 1380,
+    "scenarios": {
+      "strong_krw": 1200,
+      "base": 1380,
+      "weak_krw": 1600,
+      "crisis": 1900
+    },
+    "note": "USD/KRW 기준환율"
+  },
+
+  "longevity": {
+    "male_life_expectancy": 81.2,
+    "female_life_expectancy": 86.8,
+    "male_healthy_life_expectancy": 66.0,
+    "female_healthy_life_expectancy": 65.0,
+    "probability_reach_90_male": 0.28,
+    "probability_reach_90_female": 0.42,
+    "probability_reach_100_male": 0.04,
+    "probability_reach_100_female": 0.09,
+    "simulation_end_age": 105,
+    "note": "통계청 2024년 생명표 기준, 시뮬레이션 105세까지"
+  },
+
+  "interest_rates": {
+    "risk_free_rate": 0.035,
+    "bond_expected_return": 0.040,
+    "note": "기준금리 3.25%, 국고채 3.5% 기준"
+  },
+
+  "asset_returns": {
+    "us_stock": {
+      "expected_return": 0.085,
+      "volatility": 0.170,
+      "note": "S&P500 기대수익률 8.5%, 변동성 17%"
+    },
+    "kr_stock": {
+      "expected_return": 0.070,
+      "volatility": 0.200,
+      "note": "KOSPI 기대수익률 7%, 변동성 20%"
+    },
+    "bond": {
+      "expected_return": 0.040,
+      "volatility": 0.060,
+      "note": "국채 기대수익률 4%, 변동성 6%"
+    },
+    "cash": {
+      "expected_return": 0.035,
+      "volatility": 0.005,
+      "note": "현금성 3.5%, 변동성 0.5%"
+    },
+    "real_estate": {
+      "expected_return": 0.040,
+      "volatility": 0.100,
+      "note": "부동산 기대수익률 4%, 변동성 10%"
+    },
+    "reits": {
+      "expected_return": 0.060,
+      "volatility": 0.150,
+      "note": "리츠 기대수익률 6%, 변동성 15%"
+    },
+    "global_bond": {
+      "expected_return": 0.045,
+      "volatility": 0.080,
+      "note": "글로벌채권 기대수익률 4.5%"
+    }
+  },
+
+  "correlation_matrix": {
+    "assets": ["us_stock", "kr_stock", "bond", "cash", "real_estate", "reits", "global_bond"],
+    "matrix": [
+      [1.00,  0.65,  -0.20, 0.00,  0.15,  0.70,  -0.10],
+      [0.65,  1.00,  -0.15, 0.00,  0.25,  0.55,  -0.05],
+      [-0.20, -0.15, 1.00,  0.30,  0.05,  -0.10, 0.80],
+      [0.00,  0.00,  0.30,  1.00,  0.00,  0.00,  0.20],
+      [0.15,  0.25,  0.05,  0.00,  1.00,  0.40,  0.05],
+      [0.70,  0.55,  -0.10, 0.00,  0.40,  1.00,  -0.05],
+      [-0.10, -0.05, 0.80,  0.20,  0.05,  -0.05, 1.00]
+    ],
+    "note": "자산군 간 상관관계 행렬"
+  },
+
+  "medical_costs": {
+    "base_monthly_age_60": 250000,
+    "base_monthly_age_70": 450000,
+    "base_monthly_age_80": 800000,
+    "base_monthly_age_90": 1500000,
+    "long_term_care": {
+      "grade_1_monthly": 2100000,
+      "grade_2_monthly": 1800000,
+      "grade_3_monthly": 1500000,
+      "grade_4_monthly": 1200000,
+      "grade_5_monthly": 900000,
+      "cognitive_monthly": 900000,
+      "probability_need_age_75": 0.10,
+      "probability_need_age_80": 0.25,
+      "probability_need_age_85": 0.45,
+      "probability_need_age_90": 0.65,
+      "note": "장기요양 필요 확률 및 월 비용 (2026 기준)"
+    }
+  },
+
+  "stress_scenarios": {
+    "global_financial_crisis": {
+      "name": "글로벌 금융위기",
+      "us_stock_shock": -0.50,
+      "kr_stock_shock": -0.55,
+      "bond_shock": 0.10,
+      "duration_years": 2,
+      "recovery_years": 5
+    },
+    "prolonged_recession": {
+      "name": "장기 침체",
+      "stock_annual_return": -0.05,
+      "duration_years": 10
+    },
+    "high_interest": {
+      "name": "고금리 환경",
+      "rate_increase": 0.03,
+      "bond_shock": -0.15,
+      "cash_benefit": 0.03
+    },
+    "high_inflation": {
+      "name": "고인플레이션",
+      "inflation_rate": 0.065,
+      "real_return_reduction": -0.04
+    },
+    "currency_crisis": {
+      "name": "환율 급등",
+      "usd_krw": 1900,
+      "overseas_asset_krw_gain": 0.38
+    },
+    "policy_change_health": {
+      "name": "건보료 인상",
+      "rate_increase": 0.02,
+      "note": "건보료율 2% 추가 인상 시나리오"
+    },
+    "pension_reduction": {
+      "name": "국민연금 개혁",
+      "benefit_reduction": 0.20,
+      "note": "국민연금 급여 20% 감소 시나리오"
+    }
+  }
+}
